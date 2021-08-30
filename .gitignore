@@ -1,0 +1,11 @@
+# Project exclude paths
+/.gradle/
+/Simple Banking System/task/build/
+/Simple Banking System/task/out/
+/Simple Banking System/task/out/production/classes/
+/Topics/Multidimensional array/Fill the matrix by numbers/out/
+/Topics/Multidimensional array/Fill the matrix by numbers/out/production/classes/
+/Topics/Multidimensional array/Swap the columns/out/
+/Topics/Multidimensional array/Swap the columns/out/production/classes/
+/Topics/Multidimensional array/The star figure/out/
+/Topics/Multidimensional array/The star figure/out/production/classes/
