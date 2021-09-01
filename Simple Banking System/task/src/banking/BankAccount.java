@@ -1,14 +1,26 @@
 package banking;
 
+import java.sql.*;
+
+import static banking.Connect.url;
+
 public class BankAccount extends Bank{
+
 
     private String cardNumber;
     private String pin;
     private int balance;
 
     public BankAccount() {
-        balance = 0;
+        this.balance = 0;
     }
+
+    public BankAccount(String cardNumber, String pin, int balance) {
+        this.cardNumber = cardNumber;
+        this.pin = pin;
+        this.balance = balance;
+    }
+
     public void create(){
         int counter = 0;
 
@@ -38,8 +50,32 @@ public class BankAccount extends Bank{
                 pin = creatorOfNumbers.toString();
             }
         }
+        toDbInsert();
     }
 
+    public void toDbInsert(){
+        String sql = "INSERT INTO card (number,pin,balance) VALUES (?,?,?)";
+
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1,cardNumber);
+            pstmt.setString(2,pin);
+            pstmt.setInt(3,balance);
+            pstmt.executeUpdate();
+        }catch (SQLException e){
+            e.getErrorCode();
+        }
+    }
+
+    private Connection connect() {
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(url);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return conn;
+    }
     public String getCardNumber() {
         return cardNumber;
     }
