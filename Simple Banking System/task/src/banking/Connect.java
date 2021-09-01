@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import static banking.Database.url;
+
 /**
  *
  * @author sqlitetutorial.net
@@ -12,8 +14,6 @@ public class Connect {
     /**
      * Connect to a sample database
      */
-
-    static final String url ="jdbc:sqlite:card.s3db";
 
     public static void connect() {
         Connection conn = null;

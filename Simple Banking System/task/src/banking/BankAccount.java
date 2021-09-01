@@ -2,7 +2,7 @@ package banking;
 
 import java.sql.*;
 
-import static banking.Connect.url;
+import static banking.Database.url;
 
 public class BankAccount extends Bank{
 

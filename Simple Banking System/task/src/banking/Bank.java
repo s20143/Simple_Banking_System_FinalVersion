@@ -6,7 +6,7 @@ import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
-import static banking.Connect.url;
+import static banking.Database.url;
 
 public class Bank {
     Scanner sc;
