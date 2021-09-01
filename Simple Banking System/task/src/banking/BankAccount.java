@@ -67,6 +67,17 @@ public class BankAccount extends Bank{
         }
     }
 
+    public void toDbDelete(){
+        String sql = "DELETE FROM card WHERE number="+this.getCardNumber();
+
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.executeUpdate();
+        }catch (SQLException e){
+            e.getErrorCode();
+        }
+    }
+
     private Connection connect() {
         Connection conn = null;
         try {

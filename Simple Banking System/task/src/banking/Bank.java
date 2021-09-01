@@ -9,49 +9,19 @@ import java.util.Scanner;
 import static banking.Database.url;
 
 public class Bank {
-    Scanner sc;
-    List<BankAccount> bankAccountList;
+    private Scanner sc;
+    private List<BankAccount> bankAccountList;
+    private Database db;
 
     public Bank() {
         this.sc = new Scanner(System.in);
-        bankAccountList = new ArrayList<>();
-        createNewTable();
-    }
-
-
-    private Connection connect() {
-
-        Connection conn = null;
-        try {
-            conn = DriverManager.getConnection(url);
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return conn;
-    }
-
-    public static void createNewTable() {
-
-        // SQL statement for creating a new table
-        String sql = "CREATE TABLE IF NOT EXISTS card (\n"
-                + "	id integer PRIMARY KEY,\n"
-                + "	number text NOT NULL,\n"
-                + "	balance int,\n"
-                + "	pin text DEFAULT 0\n"
-                + ");";
-
-        try (Connection conn = DriverManager.getConnection(url);
-             Statement stmt = conn.createStatement()) {
-            // create a new table
-            stmt.execute(sql);
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
+        this.db = new Database();
+        this.bankAccountList = new ArrayList<>();
     }
 
     public void fillListofAccounts(){
-        String sql = "SELECT number,pin,balance from card";
-        try (Connection conn = this.connect();
+        String sql = "SELECT number,pin,balance FROM card";
+        try (Connection conn = db.connect();
              Statement stmt  = conn.createStatement();
              ResultSet rs    = stmt.executeQuery(sql)){
 
@@ -65,7 +35,10 @@ public class Bank {
 
     public void start(){
         fillListofAccounts();
+        menuGeneral();
+    }
 
+    public void menuGeneral(){
         while(true){
             System.out.println("1. Create an account\n" +
                     "2. Log into account\n" +
@@ -87,55 +60,90 @@ public class Bank {
                             +bankAccount.getPin());
                     break;
 
-                    case 2:
-                        System.out.println("Enter your card number:");
-                        String inputNumber = sc.next();
-                        if (inputNumber.length() != 16) {
-                            System.out.println("This number is too short or too long!");
-                        }
+                case 2:
+                    menuClient();
+                    break;
 
-                        for (BankAccount bankAccountCheck:
-                                bankAccountList) {
-                            if (bankAccountCheck.getCardNumber().equals(inputNumber)) {
-                                System.out.println("Enter your PIN:");
-                                String inputPin = sc.next();
-                                if (inputPin.length() != 4) {
-                                    System.out.println("This number is too short or too long!");
-                                }
-                                if(!inputPin.equals(bankAccountCheck.getPin()))
-                                    System.out.println("Wrong card number or PIN!");
-                                else {
-                                    while (true) {
-                                        System.out.println("\n"+"You have successfully logged in!"+"\n");
-                                        System.out.println("1. Balance\n" +
-                                                "2. Log out\n" +
-                                                "0. Exit");
-                                        int choice = sc.nextInt();
-                                        if (choice == 1)
-                                            System.out.println("Balance " + bankAccountCheck.getBalance());
-                                        else if (choice == 2) {
-                                            System.out.println("\n"+"You have successfully logged in!"+"\n");
-                                            break;
-                                        } else {
-                                            System.out.println("Bye!");
-                                            System.exit(0);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        break;
+                case 0:
+                    exit();
+                    break;
 
-                        case 0:
-                            System.exit(0);
-                            System.out.println("Bye!");
-                            break;
-
-                            default:
-                                System.err.println("Option " + input + " doesn't exist");
-                                break;
+                default:
+                    System.err.println("Option " + input + " doesn't exist");
+                    break;
             }
         }
+    }
+
+    public void menuClient(){
+        System.out.println("Enter your card number:");
+        String inputNumber = sc.next();
+        if (inputNumber.length() != 16) {
+            System.out.println("This number is too short or too long!");
+        }
+
+        for (BankAccount bankAccountCheck:
+                bankAccountList) {
+            if (bankAccountCheck.getCardNumber().equals(inputNumber)) {
+                System.out.println("Enter your PIN:");
+                String inputPin = sc.next();
+                if (inputPin.length() != 4) {
+                    System.out.println("This number is too short or too long!");
+                }
+                if(!inputPin.equals(bankAccountCheck.getPin()))
+                    System.out.println("Wrong card number or PIN!");
+                else {
+                    System.out.println("\n"+"You have successfully logged in!"+"\n");
+                    while (true) {
+                        System.out.println("1. Balance\n" +
+                                "2. Add income\n" +
+                                "3. Do transfer\n" +
+                                "4. Close account\n" +
+                                "5. Log out\n" +
+                                "0. Exit");
+                     operationInMenu(bankAccountCheck);
+                    }
+                }
+            }
+        }
+    }
+
+    public void operationInMenu(BankAccount bankAccountCheck){
+        int choice = sc.nextInt();
+        switch(choice){
+            case 1:
+                System.out.println("Balance " + bankAccountCheck.getBalance());
+                break;
+
+                case 2:
+                    break;
+
+                    case 3:
+                        break;
+
+                        case 4:
+                            bankAccountList.remove(bankAccountCheck);
+                            bankAccountCheck.toDbDelete();
+                            break;
+
+                            case 5:
+                                System.out.println("\n"+"You have successfully logged out!"+"\n");
+                                menuGeneral();
+                                break;
+
+                                case 0:
+                                    exit();
+                                    break;
+
+                                    default:
+                                        System.out.println("This option does not exist! Try again");
+                                        operationInMenu(bankAccountCheck);
+                                        break;
+        }
+    }
+    public void exit(){
+        System.out.println("Bye!");
+        System.exit(0);
     }
 }
 
