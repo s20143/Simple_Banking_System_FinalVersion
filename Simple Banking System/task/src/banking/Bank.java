@@ -11,7 +11,7 @@ import static banking.Database.url;
 public class Bank {
     private Scanner sc;
     private List<BankAccount> bankAccountList;
-    private Database db;
+    static Database db;
 
     public Bank() {
         this.sc = new Scanner(System.in);
@@ -116,9 +116,16 @@ public class Bank {
                 break;
 
                 case 2:
+                    System.out.println("Enter income:");
+                    bankAccountCheck.addIncome(sc.nextInt());
+                    System.out.println("Income was added!");
                     break;
 
                     case 3:
+                        System.out.println("Transfer\n" +
+                                "Enter card number:");
+                        bankAccountCheck.transfer(sc.next(),this.bankAccountList);
+
                         break;
 
                         case 4:

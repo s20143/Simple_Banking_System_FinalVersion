@@ -1,21 +1,26 @@
 package banking;
 
 import java.sql.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Scanner;
 
 import static banking.Database.url;
 
 public class BankAccount extends Bank{
 
-
+    private Scanner sc;
     private String cardNumber;
     private String pin;
     private int balance;
 
     public BankAccount() {
         this.balance = 0;
+        this.sc = new Scanner(System.in);
     }
 
     public BankAccount(String cardNumber, String pin, int balance) {
+        this.sc = new Scanner(System.in);
         this.cardNumber = cardNumber;
         this.pin = pin;
         this.balance = balance;
@@ -53,40 +58,66 @@ public class BankAccount extends Bank{
         toDbInsert();
     }
 
-    public void toDbInsert(){
-        String sql = "INSERT INTO card (number,pin,balance) VALUES (?,?,?)";
-
-        try (Connection conn = this.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1,cardNumber);
-            pstmt.setString(2,pin);
-            pstmt.setInt(3,balance);
-            pstmt.executeUpdate();
-        }catch (SQLException e){
-            e.getErrorCode();
+    public void transfer(String cardNumber, List<BankAccount> bankAccountList){
+        int inputTransferMoney;
+        if(!checkLuhn(cardNumber)){
+            System.out.println("Probably you made a mistake in the card number. Please try again!");
+            return;
         }
+        if(bankAccountList.stream().noneMatch(bankAccount -> bankAccount.getCardNumber().equals(cardNumber))){
+            System.out.println("Such a card does not exist.");
+            return;
+        }
+        System.out.println("Enter how much money you want to transfer:");
+        inputTransferMoney= sc.nextInt();
+        if(inputTransferMoney > this.getBalance()) {
+            System.out.println("Not enough money!");
+            return;
+        }
+        this.setBalance(this.getBalance() -inputTransferMoney);
+        BankAccount bankAccount = Objects.requireNonNull(bankAccountList
+                        .stream()
+                        .filter(f -> f.getCardNumber().equals(cardNumber))
+                        .findFirst()
+                        .orElse(null));
+        bankAccount.setBalance(bankAccount.getBalance()+inputTransferMoney);
+        db.UpdateDatabase(this,bankAccount);
+    }
+
+    public boolean checkLuhn(String cardNumber){
+        int sum =0;
+        if (cardNumber.length() != 16)
+            return false;
+        for (int i = 0; i <cardNumber.length()-1 ; i++) {
+            String ch = String.valueOf(cardNumber.charAt(i));
+            int j = Integer.parseInt(ch);
+
+            if((i+1) % 2 == 1)
+                j *= 2;
+            if(j > 9)
+                j -= 9;
+            sum+= j;
+        }
+        String ch = String.valueOf(cardNumber.charAt(cardNumber.length()-1));
+        int j = Integer.parseInt(ch);
+        sum += j;
+
+        return sum % 10 == 0;
+    }
+
+    public void addIncome(int income){
+        this.balance += income;
+        db.UpdateDatabase(this.balance, this.cardNumber);
+    }
+
+    public void toDbInsert(){
+        db.toDbInsert(this.cardNumber,this.getPin(),this.getBalance());
     }
 
     public void toDbDelete(){
-        String sql = "DELETE FROM card WHERE number="+this.getCardNumber();
-
-        try (Connection conn = this.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.executeUpdate();
-        }catch (SQLException e){
-            e.getErrorCode();
-        }
+        db.toDbDelete(this);
     }
 
-    private Connection connect() {
-        Connection conn = null;
-        try {
-            conn = DriverManager.getConnection(url);
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return conn;
-    }
     public String getCardNumber() {
         return cardNumber;
     }
@@ -97,5 +128,9 @@ public class BankAccount extends Bank{
 
     public int getBalance() {
         return balance;
+    }
+
+    public void setBalance(int balance) {
+        this.balance = balance;
     }
 }
